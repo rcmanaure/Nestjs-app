@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { RequestLoggerMiddleware } from './core';
+import { requestLoggerMiddleware } from './core';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,7 +20,7 @@ async function bootstrap() {
   );
 
   // Global middleware
-  app.use(new RequestLoggerMiddleware().use);
+  app.use(requestLoggerMiddleware);
 
   // CORS
   app.enableCors({

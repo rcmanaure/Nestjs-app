@@ -23,30 +23,61 @@ describe('UserService', () => {
   };
 
   beforeEach(async () => {
-    const module: TestingModule = await setupTestModule({
-      additionalModules: [
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        UserService,
+        UserRepository,
         {
-          providers: [
-            UserService,
-            UserRepository,
-            {
-              provide: LoggerService,
-              useValue: {
-                log: jest.fn(),
-                error: jest.fn(),
-              },
-            },
-            {
-              provide: StripeService,
-              useValue: {
-                createCustomer: jest.fn().mockResolvedValue({ id: 'cus_test123' }),
-              },
-            },
-          ],
-          exports: [UserService, UserRepository],
+          provide: LoggerService,
+          useValue: {
+            log: jest.fn(),
+            error: jest.fn(),
+          },
+        },
+        {
+          provide: StripeService,
+          useValue: {
+            createCustomer: jest.fn().mockResolvedValue({ id: 'cus_test123' }),
+          },
+        },
+        {
+          provide: getModelToken(User.name),
+          useValue: {
+            new: jest.fn().mockResolvedValue(mockUser),
+            constructor: jest.fn().mockResolvedValue(mockUser),
+            create: jest.fn(),
+            findById: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue(null),
+            }),
+            findOne: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue(null),
+            }),
+            find: jest.fn().mockReturnValue({
+              limit: jest.fn().mockReturnThis(),
+              skip: jest.fn().mockReturnThis(),
+              sort: jest.fn().mockReturnThis(),
+              exec: jest.fn().mockResolvedValue([]),
+            }),
+            findByIdAndUpdate: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue(null),
+            }),
+            findOneAndUpdate: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue(null),
+            }),
+            findByIdAndDelete: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue(null),
+            }),
+            findOneAndDelete: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue(null),
+            }),
+            countDocuments: jest.fn().mockReturnValue({
+              limit: jest.fn().mockReturnThis(),
+              exec: jest.fn().mockResolvedValue(0),
+            }),
+          },
         },
       ],
-    });
+    }).compile();
 
     service = module.get<UserService>(UserService);
     userRepository = module.get<UserRepository>(UserRepository);

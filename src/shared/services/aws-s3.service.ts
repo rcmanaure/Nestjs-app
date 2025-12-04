@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as AWS from 'aws-sdk';
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { LoggerService } from './logger.service';
 
 export interface UploadFileDto {
@@ -18,7 +19,7 @@ export interface UploadedFile {
 
 @Injectable()
 export class AwsS3Service {
-  private s3: AWS.S3;
+  private s3: S3Client;
   private readonly logger = new LoggerService();
   private readonly bucketName: string;
 
@@ -32,10 +33,12 @@ export class AwsS3Service {
       throw new Error('AWS credentials and bucket name must be configured');
     }
 
-    this.s3 = new AWS.S3({
-      accessKeyId,
-      secretAccessKey,
+    this.s3 = new S3Client({
       region,
+      credentials: {
+        accessKeyId,
+        secretAccessKey,
+      },
     });
   }
 
@@ -44,15 +47,15 @@ export class AwsS3Service {
     const key = `${folder}/${Date.now()}-${filename}`;
 
     try {
-      const uploadParams: AWS.S3.PutObjectRequest = {
+      const command = new PutObjectCommand({
         Bucket: this.bucketName,
         Key: key,
         Body: file,
         ContentType: mimetype,
         ACL: 'public-read', // Adjust based on your security requirements
-      };
+      });
 
-      await this.s3.upload(uploadParams).promise();
+      await this.s3.send(command);
 
       const url = `https://${this.bucketName}.s3.amazonaws.com/${key}`;
 
@@ -77,12 +80,12 @@ export class AwsS3Service {
 
   async deleteFile(key: string): Promise<void> {
     try {
-      const deleteParams: AWS.S3.DeleteObjectRequest = {
+      const command = new DeleteObjectCommand({
         Bucket: this.bucketName,
         Key: key,
-      };
+      });
 
-      await this.s3.deleteObject(deleteParams).promise();
+      await this.s3.send(command);
 
       this.logger.log(`File deleted successfully: ${key}`, {
         operation: 'deleteFile',
@@ -99,11 +102,12 @@ export class AwsS3Service {
 
   async getSignedUrl(key: string, expiresIn: number = 3600): Promise<string> {
     try {
-      const signedUrl = await this.s3.getSignedUrlPromise('getObject', {
+      const command = new GetObjectCommand({
         Bucket: this.bucketName,
         Key: key,
-        Expires: expiresIn,
       });
+
+      const signedUrl = await getSignedUrl(this.s3, command, { expiresIn });
 
       this.logger.log(`Generated signed URL for: ${key}`, {
         operation: 'getSignedUrl',

@@ -5,4 +5,4 @@ export * from './filters/http-exception.filter';
 export * from './guards/clerk-auth.guard';
 export * from './guards/clerk-role.guard';
 export * from './interceptors/logging.interceptor';
-export * from './middlewares/request-logger.middleware';
+export { requestLoggerMiddleware } from './middlewares/request-logger.middleware';

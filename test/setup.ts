@@ -94,30 +94,29 @@ jest.mock('stripe', () => {
   }));
 });
 
-jest.mock('aws-sdk', () => ({
-  S3: jest.fn().mockImplementation(() => ({
-    upload: jest.fn().mockReturnValue({
-      promise: jest.fn().mockResolvedValue({
-        Location: 'https://test-bucket.s3.amazonaws.com/test-key',
-        Key: 'test-key',
-      }),
-    }),
-    deleteObject: jest.fn().mockReturnValue({
-      promise: jest.fn().mockResolvedValue({}),
-    }),
-    getSignedUrlPromise: jest.fn().mockResolvedValue('https://signed-url.com'),
+jest.mock('@aws-sdk/client-s3', () => ({
+  S3Client: jest.fn().mockImplementation(() => ({
+    send: jest.fn().mockResolvedValue({}),
   })),
+  PutObjectCommand: jest.fn(),
+  DeleteObjectCommand: jest.fn(),
+  GetObjectCommand: jest.fn(),
+}));
+
+jest.mock('@aws-sdk/s3-request-presigner', () => ({
+  getSignedUrl: jest.fn().mockResolvedValue('https://signed-url.com'),
 }));
 
 jest.mock('redis', () => ({
   createClient: jest.fn().mockReturnValue({
     on: jest.fn(),
-    set: jest.fn().mockImplementation((key, value, callback) => callback(null, 'OK')),
-    get: jest.fn().mockImplementation((key, callback) => callback(null, 'test_value')),
-    del: jest.fn().mockImplementation((key, callback) => callback(null, 1)),
-    exists: jest.fn().mockImplementation((key, callback) => callback(null, 1)),
-    expire: jest.fn().mockImplementation((key, ttl, callback) => callback(null, 1)),
-    ttl: jest.fn().mockImplementation((key, callback) => callback(null, 300)),
-    quit: jest.fn().mockImplementation((callback) => callback()),
+    set: jest.fn().mockResolvedValue('OK'),
+    setEx: jest.fn().mockResolvedValue('OK'),
+    get: jest.fn().mockResolvedValue('test_value'),
+    del: jest.fn().mockResolvedValue(1),
+    exists: jest.fn().mockResolvedValue(1),
+    expire: jest.fn().mockResolvedValue(1),
+    ttl: jest.fn().mockResolvedValue(300),
+    quit: jest.fn().mockResolvedValue('OK'),
   }),
 }));

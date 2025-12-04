@@ -7,7 +7,6 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
 import { ClerkAuthGuard } from './guards/clerk-auth.guard';
 import { ClerkRoleGuard } from './guards/clerk-role.guard';
-import { RequestLoggerMiddleware } from './middlewares/request-logger.middleware';
 
 @Global()
 @Module({
@@ -45,8 +44,7 @@ import { RequestLoggerMiddleware } from './middlewares/request-logger.middleware
       provide: APP_GUARD,
       useClass: ClerkRoleGuard,
     },
-    RequestLoggerMiddleware,
   ],
-  exports: [ConfigModule, ThrottlerModule, RequestLoggerMiddleware],
+  exports: [ConfigModule, ThrottlerModule],
 })
 export class CoreModule {}
