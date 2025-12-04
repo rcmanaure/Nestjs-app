@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  app:
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - .:/app:cached
+      - /app/node_modules
+    command: npm run start:dev
+    ports:
+      - "3000:3000"
+      - "9229:9229" # Debug port
+
+  mongodb:
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=dev
+      - MONGO_INITDB_ROOT_PASSWORD=devpassword
+      - MONGO_INITDB_DATABASE=nestjs-app-dev
+
+  redis:
+    ports:
+      - "6379:6379"
